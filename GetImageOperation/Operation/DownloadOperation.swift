@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class DownloadOperation: Operation, @unchecked Sendable {
+class DownloadOperation: Operation, @unchecked Sendable {
     
     var target: PhotoData
     
@@ -17,18 +17,18 @@ final class DownloadOperation: Operation, @unchecked Sendable {
     }
     
     override func main() {
-        print(target.url, "START")
+        print(target.url, "Start")
         
         defer {
             if isCancelled {
                 print(target.url, "Cancelled")
             } else {
-                print(target.url, "DONE")
+                print(target.url, "Done")
             }
         }
         
         guard !Thread.isMainThread else {
-            fatalError("다운로드를 메인쓰레드에서 사용하려 함")
+            fatalError()
         }
         
         guard !isCancelled else {
@@ -39,8 +39,14 @@ final class DownloadOperation: Operation, @unchecked Sendable {
         do {
             
             let binaryImageData = try Data(contentsOf: target.url)
+            
+            guard !isCancelled else {
+                print(target.url, "Cancelled")
+                return
+            }
+            
             guard let image = UIImage(data: binaryImageData) else {
-                fatalError("이미지 변환 실패")
+                fatalError()
             }
             
             guard !isCancelled else {
@@ -48,7 +54,7 @@ final class DownloadOperation: Operation, @unchecked Sendable {
                 return
             }
             
-            let imageSize: CGSize = image.size.applying(CGAffineTransform(scaleX: 0.33, y: 0.33))
+            let imageSize = image.size.applying(CGAffineTransform(scaleX: 0.3, y: 0.3))
             
             guard !isCancelled else {
                 print(target.url, "Cancelled")
@@ -56,7 +62,7 @@ final class DownloadOperation: Operation, @unchecked Sendable {
             }
             
             UIGraphicsBeginImageContextWithOptions(imageSize, false, 0.0)
-            let frame: CGRect = CGRect(origin: .zero, size: imageSize)
+            let frame = CGRect(origin: .zero, size: imageSize)
             
             guard !isCancelled else {
                 print(target.url, "Cancelled")

@@ -7,19 +7,18 @@
 
 import UIKit
 
-
-final class ReloadOperation: Operation, @unchecked Sendable {
+class ReloadOperation: Operation, @unchecked Sendable {
     weak var collectionView: UICollectionView!
     var indexPath: IndexPath?
     
-    init(collectionView: UICollectionView, indexPath: IndexPath? = nil) {
+    init(collectionView: UICollectionView!, indexPath: IndexPath? = nil) {
         self.collectionView = collectionView
         self.indexPath = indexPath
         super.init()
     }
     
     override func main() {
-        print(self, "Start")
+        print(self, "Start", indexPath)
         
         defer {
             if isCancelled {
@@ -30,11 +29,11 @@ final class ReloadOperation: Operation, @unchecked Sendable {
         }
         
         guard Thread.isMainThread else {
-            fatalError("리로드오퍼레이션은 메인스레드에서 실행되어야 합니다")
+            fatalError()
         }
         
         guard !isCancelled else {
-            print(self, "Cancelled", indexPath)
+            print(self, "Cancelled")
             return
         }
         
@@ -43,7 +42,7 @@ final class ReloadOperation: Operation, @unchecked Sendable {
                 collectionView.reloadItems(at: [indexPath])
             }
         } else {
-            collectionView.reloadData() // indexPath가 nil인 경우는 첫 화면에서만 적용되므로 걍 데이터를 리로드하면 됨
+            collectionView.reloadData()
         }
     }
     

@@ -20,7 +20,7 @@ final class ImageListViewController: UIViewController {
         super.viewDidLoad()
         setLayout()
         
-        backgroundQueue.maxConcurrentOperationCount = 20
+        backgroundQueue.maxConcurrentOperationCount = 30
     }
     
     func setLayout() {
@@ -42,7 +42,6 @@ final class ImageListViewController: UIViewController {
     }
     
     @IBAction func runOperation(_ sender: UIBarButtonItem) {
-        
         var backgroundOperations = [Operation]()
         var uiOperations = [Operation]()
         
@@ -50,16 +49,13 @@ final class ImageListViewController: UIViewController {
         uiOperations.append(reloadOp)
         
         for index in 0 ..< 20 {
-            let data = ds.list[index]
-            
-            let downloadOp = DownloadOperation(target: data)
+            let targetData = ds.list[index]
+            let downloadOp = DownloadOperation(target: targetData)
             reloadOp.addDependency(downloadOp)
             backgroundOperations.append(downloadOp)
-            
-            let filterOp = FilterOperation(target: data)
+            let filterOp = FilterOperation(target: targetData)
             filterOp.addDependency(reloadOp)
             backgroundOperations.append(filterOp)
-            
             let reloadItemOp = ReloadOperation(collectionView: imageCollectionview, indexPath: IndexPath(item: index, section: 0))
             reloadItemOp.addDependency(filterOp)
             uiOperations.append(reloadItemOp)

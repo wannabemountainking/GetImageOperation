@@ -7,8 +7,8 @@
 
 import UIKit
 
-final class FilterOperation: Operation, @unchecked Sendable {
-    
+
+class FilterOperation: Operation, @unchecked Sendable {
     var target: PhotoData
     let context = CIContext(options: nil)
     
@@ -24,12 +24,12 @@ final class FilterOperation: Operation, @unchecked Sendable {
             if isCancelled {
                 print(target.url, "Cancelled")
             } else {
-                print(target.url, "DONE")
+                print(target.url,"Done")
             }
         }
         
         guard !Thread.isMainThread else {
-            fatalError("필터오퍼레이션은 메인스레드에서 실행되어선 안됩니다.")
+            fatalError()
         }
         
         guard !isCancelled else {
@@ -38,8 +38,14 @@ final class FilterOperation: Operation, @unchecked Sendable {
         }
         
         guard let source = target.data?.cgImage else {
-            fatalError("cgImage 변환 실패")
+            fatalError()
         }
+        
+        guard !isCancelled else {
+            print(target.url, "Cancelled")
+            return
+        }
+        
         let ciImage = CIImage(cgImage: source)
         
         guard !isCancelled else {
@@ -48,6 +54,12 @@ final class FilterOperation: Operation, @unchecked Sendable {
         }
         
         let filter = CIFilter(name: "CIPhotoEffectNoir")
+        
+        guard !isCancelled else {
+            print(target.url, "Cancelled")
+            return
+        }
+        
         filter?.setValue(ciImage, forKey: kCIInputImageKey)
         
         guard !isCancelled else {
@@ -55,8 +67,8 @@ final class FilterOperation: Operation, @unchecked Sendable {
             return
         }
         
-        guard let ci = filter?.value(forKey: kCIOutputImageKey), let ciResult = ci as? CIImage else {
-            fatalError("필터 입힌 ciimage 변환 실패")
+        guard let ciResult = filter?.value(forKey: kCIOutputImageKey) as? CIImage else {
+            fatalError()
         }
         
         guard !isCancelled else {
@@ -65,7 +77,7 @@ final class FilterOperation: Operation, @unchecked Sendable {
         }
         
         guard let cgImage = context.createCGImage(ciResult, from: ciResult.extent) else {
-            fatalError("context를 사용하여 ciImage => cgImage 변환 실패")
+            fatalError()
         }
         
         guard !isCancelled else {
@@ -74,6 +86,7 @@ final class FilterOperation: Operation, @unchecked Sendable {
         }
         
         target.data = UIImage(cgImage: cgImage)
+        
     }
     
     override func cancel() {
