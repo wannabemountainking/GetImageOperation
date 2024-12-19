@@ -7,16 +7,20 @@
 
 import UIKit
 
-class ImageListViewController: UIViewController {
+final class ImageListViewController: UIViewController {
     
     let ds = PhotoDataSource()
+    
+    let backgroundQueue = OperationQueue()
+    let mainQueue = OperationQueue.main
 
     @IBOutlet weak var imageCollectionview: UICollectionView!
-    
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setLayout()
+        
+        backgroundQueue.maxConcurrentOperationCount = 20
     }
     
     func setLayout() {
@@ -33,9 +37,36 @@ class ImageListViewController: UIViewController {
     }
     
     @IBAction func cancelOperation(_ sender: UIBarButtonItem) {
+        backgroundQueue.cancelAllOperations()
+        mainQueue.cancelAllOperations()
     }
     
     @IBAction func runOperation(_ sender: UIBarButtonItem) {
+        
+        var backgroundOperations = [Operation]()
+        var uiOperations = [Operation]()
+        
+        let reloadOp = ReloadOperation(collectionView: imageCollectionview)
+        uiOperations.append(reloadOp)
+        
+        for index in 0 ..< 20 {
+            let data = ds.list[index]
+            
+            let downloadOp = DownloadOperation(target: data)
+            reloadOp.addDependency(downloadOp)
+            backgroundOperations.append(downloadOp)
+            
+            let filterOp = FilterOperation(target: data)
+            filterOp.addDependency(reloadOp)
+            backgroundOperations.append(filterOp)
+            
+            let reloadItemOp = ReloadOperation(collectionView: imageCollectionview, indexPath: IndexPath(item: index, section: 0))
+            reloadItemOp.addDependency(filterOp)
+            uiOperations.append(reloadItemOp)
+        }
+        
+        backgroundQueue.addOperations(backgroundOperations, waitUntilFinished: false)
+        mainQueue.addOperations(uiOperations, waitUntilFinished: false)
     }
     
 }
@@ -52,7 +83,4 @@ extension ImageListViewController: UICollectionViewDataSource {
         cell.backgroundColor = .systemCyan
         return cell
     }
-    
-    
-    
 }
