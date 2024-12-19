@@ -45,16 +45,16 @@ final class ImageListViewController: UIViewController {
         var backgroundOperations = [Operation]()
         var uiOperations = [Operation]()
         
-        let reloadOp = ReloadOperation(collectionView: imageCollectionview)
-        uiOperations.append(reloadOp)
+//        let reloadOp = ReloadOperation(collectionView: imageCollectionview)
+//        uiOperations.append(reloadOp)
         
         for index in 0 ..< 20 {
             let targetData = ds.list[index]
             let downloadOp = DownloadOperation(target: targetData)
-            reloadOp.addDependency(downloadOp)
+//            reloadOp.addDependency(downloadOp)
             backgroundOperations.append(downloadOp)
             let filterOp = FilterOperation(target: targetData)
-            filterOp.addDependency(reloadOp)
+            filterOp.addDependency(downloadOp)
             backgroundOperations.append(filterOp)
             let reloadItemOp = ReloadOperation(collectionView: imageCollectionview, indexPath: IndexPath(item: index, section: 0))
             reloadItemOp.addDependency(filterOp)
